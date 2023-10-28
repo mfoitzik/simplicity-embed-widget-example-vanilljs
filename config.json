@@ -1,0 +1,14 @@
+{
+    "devKey": "M4ECMA65K38",
+    "licenseKey": "1A66D26CPSB8ABD9ZYBDB1C4K64RCTU98S0870PRSXZY0XMBBA62",
+    "widgetHeight": "fit-content",
+    "widgetWidth": "fit-content",
+    "widgetMargin": "10px",
+    "widgetBgColor": "rgba(35,133,33,0.4)",
+    "widgetPosition": "br",
+    "widgetOverlay": "overlay",
+    "widgetModal": "nonmodal",
+    "widgetUrl": "http://localhost:5500/index.html",
+    "widgetAttributes": "icon,count,color,background,heading,subhead",
+    "allowedDomains": "*"
+  }

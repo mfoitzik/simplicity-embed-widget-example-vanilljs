@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simplicity Embed&trade; Rating Widget - Vanilla Javascript Example</title>
+    <style>
+      body,
+      html {
+        background-color: transparent;
+        margin: 0;
+        padding: 0;
+        font-size: 0;
+        box-sizing: border-box;
+        height: 100%;
+        width: 100%;
+      }
+      .rating_wrapper {
+        box-sizing: border-box;
+        display: flex;
+        position: relative;
+        flex-direction: column;
+        align-items: center;
+        width: fit-content;
+        height:fit-content;
+        border: 1px dashed lightgrey;
+        border-radius: 10%;
+        background-color: #fff;
+        padding:10px;
+      }
+      .rating_wrapper:hover {
+        background-color: #f7f7f7;
+        cursor: pointer;
+      }
+      .close {
+        background: rgb(150, 150, 150, 0.6);
+        width: 10px;
+        height: 10px;
+        position: relative;
+        border-radius: 50%;
+        padding: 3px;
+        align-self: flex-end;
+        margin: 6px;
+      }
+      .close:after {
+        content: "";
+        height: 10px;
+        border-left: 2px solid #fff;
+        position: absolute;
+        transform: rotate(45deg);
+        left: 7px;
+      }
+
+      .close:before {
+        content: "";
+        height: 10px;
+        border-left: 2px solid #fff;
+        position: absolute;
+        transform: rotate(-45deg);
+        left: 7px;
+      }
+      .close:hover {
+        cursor: pointer;
+        background: rgb(173, 23, 55, 0.6);
+      }
+      .iconcolor {
+        fill: #ffcd4b;
+      }
+      .rating {
+        box-sizing: border-box;
+        padding: 7px;
+        border-radius: 50%;
+        background-color: #0802a3;
+        min-width: 50px;
+        max-width: 50px;
+        min-height: 50px;
+        max-height: 50px;
+        
+        margin-top: 8px;
+        margin-bottom: 8px;
+        margin-left: 20px;
+        margin-right: 20px;
+      }
+
+      .title {
+        font-size: 18px;
+        font-family: Arial, Helvetica, sans-serif;
+        margin: 12px;
+        background-color: #ffcd4b;
+        text-align: center;
+        color: #0802a3;
+        border-radius: 5px;
+        padding: 8px;
+        display: block;
+        width: fit-content;
+        box-sizing: border-box;
+        white-space: nowrap;
+      }
+      .selector {
+        display: inline-block;
+        height:25px;
+        width: 25px;
+      }
+      .selector svg {
+        fill: lightgray;
+      }
+      .hide {
+        display: none;
+      }
+      .message {
+        display: flex;
+        flex-direction: column;
+        width:100%;
+        position: relative;
+        box-sizing: border-box;
+        
+      }
+      .message textarea {
+        flex: 1;
+        margin: 9px 9px 9px 9px;
+        min-height:75px;
+        box-sizing: border-box;
+        resize: none;
+      }
+      .message button {
+        display:block;
+        width:fit-content;
+        align-self: center;
+        margin-bottom:18px;
+        box-sizing: border-box;
+      }
+      .message_heading {
+        font-size: 16px;
+        margin-top:18px;
+        box-sizing: border-box;
+        white-space: nowrap;
+      }
+
+      @keyframes spin {        
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(900deg);
+        }      
+      }
+
+      .spin {
+        animation: spin 2s linear;
+      }
+      
+      
+    </style>
+  </head>
+  <body>
+    <div class="rating_wrapper" id="widget">
+      <div class="close"></div>
+      <div class="title" id="heading"></div>
+      <div class="rating" id="rating">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          class="iconcolor"
+          id="icon"
+        >
+          <path
+            d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+          />
+        </svg>
+      </div>
+    </div>
+    
+
+    <div class="rating_wrapper hide" id="dialog">
+      <div class="close"></div>
+      <div class="title dialog" id="heading2"></div>
+      <div class="choose"></div>
+      <div class="message_heading" id="subhead"></div>
+      <div class="message">
+        <textarea id="message"></textarea>
+        <button type="button" id="message_btn">SUBMIT</button>
+      </div>
+    
+    </div>
+
+    <!--<div>
+      <button type="button" id="btn">test</button>
+    </div>-->
+
+    <script>
+      let icon = "star";
+      let count = "5";
+      let color = "#f5d81b";
+      let bgcolor = "#f5d81b";
+      let heading = "Rate Me";
+      let subhead = "Why did you give this rating?";
+      let chosenIcons = [];
+        const heartSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="iconcolor">
+                                <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
+                            </svg>`;
+        const pawSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M8.35,3C9.53,2.83 10.78,4.12 11.14,5.9C11.5,7.67 10.85,9.25 9.67,9.43C8.5,9.61 7.24,8.32 6.87,6.54C6.5,4.77 7.17,3.19 8.35,3M15.5,3C16.69,3.19 17.35,4.77 17,6.54C16.62,8.32 15.37,9.61 14.19,9.43C13,9.25 12.35,7.67 12.72,5.9C13.08,4.12 14.33,2.83 15.5,3M3,7.6C4.14,7.11 5.69,8 6.5,9.55C7.26,11.13 7,12.79 5.87,13.28C4.74,13.77 3.2,12.89 2.41,11.32C1.62,9.75 1.9,8.08 3,7.6M21,7.6C22.1,8.08 22.38,9.75 21.59,11.32C20.8,12.89 19.26,13.77 18.13,13.28C17,12.79 16.74,11.13 17.5,9.55C18.31,8 19.86,7.11 21,7.6M19.33,18.38C19.37,19.32 18.65,20.36 17.79,20.75C16,21.57 13.88,19.87 11.89,19.87C9.9,19.87 7.76,21.64 6,20.75C5,20.26 4.31,18.96 4.44,17.88C4.62,16.39 6.41,15.59 7.47,14.5C8.88,13.09 9.88,10.44 11.89,10.44C13.89,10.44 14.95,13.05 16.3,14.5C17.41,15.72 19.26,16.75 19.33,18.38Z" />
+                            </svg>
+                            `;
+        const starSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="iconcolor">
+                                <path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z" />
+                            </svg>`;
+        const thumbupSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M23,10C23,8.89 22.1,8 21,8H14.68L15.64,3.43C15.66,3.33 15.67,3.22 15.67,3.11C15.67,2.7 15.5,2.32 15.23,2.05L14.17,1L7.59,7.58C7.22,7.95 7,8.45 7,9V19A2,2 0 0,0 9,21H18C18.83,21 19.54,20.5 19.84,19.78L22.86,12.73C22.95,12.5 23,12.26 23,12V10M1,21H5V9H1V21Z" />
+                                </svg>`;
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+      } else {
+        init();
+      }
+
+      function init() {
+        window.addEventListener("load", (event) => {
+          const getWidget = document.getElementById("widget");
+          
+          //adding 1 pixel is hack for Firefox issue
+          let sendObject = {cmd: "configure", height:(getWidget.offsetHeight + 1) + "px", width: (getWidget.offsetWidth + 1) + "px"};
+          window.parent.postMessage(sendObject, "*");
+
+        });
+        let currentURL = new URL(window.location.href);
+        let searchParams = new URLSearchParams(currentURL.search);
+        let getIcon = searchParams.get("icon");
+        let getCount = searchParams.get("count");
+        let getColor = searchParams.get("color");
+        let getBgcolor = searchParams.get("background");
+        let getHeading = searchParams.get("heading");
+        let getSubhead = searchParams.get("subhead");
+        
+        if (getIcon && getIcon !== "null") {
+          icon = getIcon;
+        }
+        if (getCount && getCount !== "null") {
+          count = getCount;
+        }
+        if (getColor && getColor !== "null") {
+          color = getColor;
+        }
+        if (getBgcolor && getBgcolor !== "null") {
+          bgcolor = getBgcolor;
+        }
+        if (getHeading && getHeading !== "null") {
+          heading = getHeading;
+        }
+        if (getSubhead && getSubhead !== "null") {
+          subhead = getSubhead;
+        }
+        let iconHTML = "";
+        switch (icon) {
+            case "star":
+                iconHTML = starSvg;
+            case "paw":
+                iconHTML = pawSvg;
+            case "thumbup":
+                iconHTML = thumbupSvg;
+            case "heart":
+                iconHTML = heartSvg;
+            default:
+                iconHTML = starSvg;
+        }
+        if (parseInt(count) < 3 || parseInt(count) > 10 || isNaN(count)) {
+            count = 5
+        } else {
+            count = parseInt(count);
+        }
+        const getChooser = document.getElementsByClassName("choose")[0];
+        const getWrapper = document.getElementById("widget");
+        const getRating = document.getElementById("rating");
+        const getHeadingElement = document.getElementById("heading");
+        const getHeadingElement2 = document.getElementById("heading2");
+        const getSubheadElement = document.getElementById("subhead");
+        getHeadingElement.style.backgroundColor = bgcolor;
+        getHeadingElement.style.color = color;
+        getHeadingElement2.style.backgroundColor = bgcolor;
+        getHeadingElement2.style.color = color;
+        getHeadingElement.innerText = heading;
+        getHeadingElement2.innerText = heading;
+        getSubheadElement.innerText = subhead;
+
+        getRating.style.backgroundColor = bgcolor;
+        getRating.firstElementChild.style.fill = color;
+        getWrapper.addEventListener("click", function() {
+            const mDialog = document.getElementById("dialog");
+            mDialog.classList.remove("hide");
+            getWrapper.classList.add("hide");
+            let sendObject = {
+              "cmd": "configure", 
+              "position": "mm", 
+              "modal": "modal",
+              "bgColor": "rgba(0,0,0,0.6)",
+              "width": "fit-content",
+              "height": "fit-content"
+            };
+            window.parent.postMessage(sendObject, "*");
+            
+            //adding 1 pixel is hack for Firefox issue
+            let sendObject2 = {cmd: "configure", height:(mDialog.offsetHeight + 1) +"px", width: (mDialog.offsetWidth + 1) + "px"};
+            window.parent.postMessage(sendObject2, "*");
+        });
+        const submitBtn = document.getElementById("message_btn");
+        submitBtn.addEventListener("click", function(e) {
+          e.stopPropagation();
+          const getMessage = document.getElementById("message");
+          let outMessage = "";
+          if (getMessage) {
+            outMessage = getMessage.value;
+          }
+          console.log(chosenIcons);
+          console.log(outMessage);
+          let outRating = 0
+          for (let x = 0; x < chosenIcons.length; x++) {
+            if (chosenIcons[x] == true) {
+              outRating++;
+            }
+          }
+          let sendObject = {
+              "command": "rating", 
+              "rating": outRating, 
+              "maxRating": chosenIcons.length,
+              "message": outMessage
+            };
+            window.parent.postMessage(sendObject, "*");
+        });
+        
+        const getClosers = document.getElementsByClassName("close");
+        for(let i = 0; i < getClosers.length; i++) {
+          if (i == 0) {
+            getClosers[i].addEventListener("click", function() {
+              event.stopPropagation();
+              window.parent.postMessage({cmd: 'close'}, "*");
+            })
+          }
+          if (i == 1) {
+            getClosers[i].addEventListener("click", function() {
+              event.stopPropagation();
+              const mDialog = document.getElementById("dialog");
+              const getWrapper = document.getElementById("widget");
+              getWrapper.classList.remove("hide");
+              mDialog.classList.add("hide");
+              let sendObject = {
+                "cmd": "configure", 
+                "position": "br", 
+                "modal": "modal",
+                "bgColor": "rgba(0,0,255,0.6)",
+                "width": "fit-content",
+                "height": "fit-content"
+              };
+              window.parent.postMessage(sendObject, "*");
+              
+              //adding 1 pixel is hack for Firefox issue
+              let sendObject2 = {cmd: "configure", height:(getWrapper.offsetHeight + 1) +"px", width: (getWrapper.offsetWidth + 1) + "px"};
+              window.parent.postMessage(sendObject2, "*");
+            })
+          }
+          
+        }
+
+
+        if (getChooser) {
+            for(x=1; x <= count; x++) {
+                let newDiv = document.createElement("DIV");
+                newDiv.classList.add("selector");
+                newDiv.innerHTML = iconHTML;
+                const svgEl = newDiv.firstElementChild;
+                svgEl.id = "rating" + x + "_" + count;
+                getChooser.appendChild(newDiv);
+                svgEl.addEventListener("mouseover", function() {
+                    this.style.fill = color;
+                    this.style.cursor = "pointer";
+                });
+                svgEl.addEventListener("mouseout", function() {
+                  let iconRating = this.id.replace("rating", "").split("_")[0];  
+                  if (chosenIcons[parseInt(iconRating) -1] == false) {
+                    this.style.fill = "lightgray";
+                    this.style.cursor = "default";
+                  }
+                  
+                });
+                svgEl.addEventListener("click", function() {
+                    console.log(this.id);
+                    let iconRating = this.id.replace("rating", "").split("_");
+                    for (let x = 1; x <= iconRating[1]; x++){
+                      const selectIcon = document.getElementById("rating" + x + "_" + iconRating[1]);
+                      if (selectIcon) {
+                      if (x <= iconRating[0]) {
+                        
+                        
+                          selectIcon.style.fill = color;
+                        
+                          chosenIcons[x - 1] = true;
+                        } else {
+                          selectIcon.style.fill = "lightgray";
+                          chosenIcons[x - 1] = false;
+                        }
+                      }
+                    }
+                });
+                chosenIcons.push(false);
+            }
+        }
+        //listen for component host messages/commands
+        window.addEventListener("message", (event) => {
+          if (event.data.command) {
+            switch(event.data.command) {
+              case "spin":
+                const icon = document.getElementById("icon");
+                icon.classList.remove("spin");
+                const myParent = icon.closest("div");
+                const inHTML = myParent.innerHTML;
+                myParent.innerHTML = inHTML;
+                const icon2 = document.getElementById("icon");
+                icon2.classList.add("spin");
+                //const newIcon = icon.cloneNode();
+                //newIcon.innerHTML = icon.innerHTML;
+                //const myParent = icon.closest("div");
+                //myParent.removeChild(icon);
+                //myParent.appendChild(newIcon);
+                //newIcon.classList.add("spin");
+                break;
+              case "unspin":
+                //icon.classList.remove("spin");
+                break;
+            }
+          }
+          console.log("Received message");
+          console.log(event.data);
+        });
+      }
+    </script>
+  </body>
+</html>
