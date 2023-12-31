@@ -178,22 +178,20 @@
       <div class="message_heading" id="subhead"></div>
       <div class="message">
         <textarea id="message"></textarea>
-        <button type="button" id="message_btn">SUBMIT</button>
+        <button type="button" id="message_btn">SUBMIT</button><button type="button" id="info_btn">INFO</button>
       </div>
     
     </div>
 
-    <!--<div>
-      <button type="button" id="btn">test</button>
-    </div>-->
-
     <script>
+      //set defaults in case someone does not send url parameters
       let icon = "star";
       let count = "5";
       let color = "#f5d81b";
       let bgcolor = "#f5d81b";
       let heading = "Rate Me";
       let subhead = "Why did you give this rating?";
+      let myId = "";
       let chosenIcons = [];
         const heartSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="iconcolor">
                                 <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z" />
@@ -213,25 +211,26 @@
       } else {
         init();
       }
-
+      //
       function init() {
         window.addEventListener("load", (event) => {
           const getWidget = document.getElementById("widget");
           
           //adding 1 pixel is hack for Firefox issue
-          let sendObject = {cmd: "configure", height:(getWidget.offsetHeight + 1) + "px", width: (getWidget.offsetWidth + 1) + "px"};
+          let sendObject = {cmd: "configure", id: myId, height:(getWidget.offsetHeight + 1) + "px", width: (getWidget.offsetWidth + 1) + "px"};
           window.parent.postMessage(sendObject, "*");
 
         });
+        //grab url parameters that come through the simplicity-embed custom attributes you define in the config file
         let currentURL = new URL(window.location.href);
         let searchParams = new URLSearchParams(currentURL.search);
-        let getIcon = searchParams.get("icon");
-        let getCount = searchParams.get("count");
-        let getColor = searchParams.get("color");
-        let getBgcolor = searchParams.get("background");
-        let getHeading = searchParams.get("heading");
-        let getSubhead = searchParams.get("subhead");
-        
+        let getIcon = searchParams.get("data-icon");
+        let getCount = searchParams.get("data-count");
+        let getColor = searchParams.get("data-color");
+        let getBgcolor = searchParams.get("data-background");
+        let getHeading = searchParams.get("data-heading");
+        let getSubhead = searchParams.get("data-subhead");
+        let getId = searchParams.get("id");
         if (getIcon && getIcon !== "null") {
           icon = getIcon;
         }
@@ -250,30 +249,41 @@
         if (getSubhead && getSubhead !== "null") {
           subhead = getSubhead;
         }
+        if (getId && getId != "null") {
+          myId = getId;
+        }
         let iconHTML = "";
         switch (icon) {
             case "star":
-                iconHTML = starSvg;
+              iconHTML = starSvg;
+              break;
             case "paw":
-                iconHTML = pawSvg;
+              iconHTML = pawSvg;
+              break;
             case "thumbup":
-                iconHTML = thumbupSvg;
+              iconHTML = thumbupSvg;
+              break;
             case "heart":
-                iconHTML = heartSvg;
+              iconHTML = heartSvg;
+              break;
             default:
-                iconHTML = starSvg;
+              iconHTML = starSvg;
         }
         if (parseInt(count) < 3 || parseInt(count) > 10 || isNaN(count)) {
             count = 5
         } else {
             count = parseInt(count);
         }
+        
         const getChooser = document.getElementsByClassName("choose")[0];
         const getWrapper = document.getElementById("widget");
         const getRating = document.getElementById("rating");
         const getHeadingElement = document.getElementById("heading");
         const getHeadingElement2 = document.getElementById("heading2");
         const getSubheadElement = document.getElementById("subhead");
+        
+        getRating.innerHTML = iconHTML;
+        getRating.firstChild.id = "icon";
         getHeadingElement.style.backgroundColor = bgcolor;
         getHeadingElement.style.color = color;
         getHeadingElement2.style.backgroundColor = bgcolor;
@@ -285,7 +295,12 @@
         getRating.style.backgroundColor = bgcolor;
         getRating.firstElementChild.style.fill = color;
         getWrapper.addEventListener("click", function() {
-            const mDialog = document.getElementById("dialog");
+          //this is custom behavior you assign inside your widget
+          //change the overlay, position and mode of how the simplicity-embed component
+          //will display your widget
+          //in this case we are centering the widget, changing the background color
+          //and making it modal
+          const mDialog = document.getElementById("dialog");
             mDialog.classList.remove("hide");
             getWrapper.classList.add("hide");
             let sendObject = {
@@ -294,15 +309,24 @@
               "modal": "modal",
               "bgColor": "rgba(0,0,0,0.6)",
               "width": "fit-content",
-              "height": "fit-content"
+              "height": "fit-content",
+              "id": myId
             };
+            //Ideally, the origin will be set to the domain of Simplicity Embed component host
+            //
             window.parent.postMessage(sendObject, "*");
-            
+            //always send a second configure command after changing widget screens to adjust the size to the content
+            //this is not necessary if your original command sets a pixel-specific size
             //adding 1 pixel is hack for Firefox issue
-            let sendObject2 = {cmd: "configure", height:(mDialog.offsetHeight + 1) +"px", width: (mDialog.offsetWidth + 1) + "px"};
+            let sendObject2 = {cmd: "configure", id: myId, height:(mDialog.offsetHeight + 1) +"px", width: (mDialog.offsetWidth + 1) + "px"};
             window.parent.postMessage(sendObject2, "*");
         });
         const submitBtn = document.getElementById("message_btn");
+        const infoBtn = document.getElementById("info_btn");
+        
+        //the following event handler sends out an event that the page hosting the simplicity-embed component
+        //can listen for and then act upon.
+        //the event is sbnotify and the event.detail will contain the object sent to simplicity-embed.postMessage
         submitBtn.addEventListener("click", function(e) {
           e.stopPropagation();
           const getMessage = document.getElementById("message");
@@ -322,7 +346,15 @@
               "command": "rating", 
               "rating": outRating, 
               "maxRating": chosenIcons.length,
-              "message": outMessage
+              "message": outMessage,
+              id: myId
+            };
+            window.parent.postMessage(sendObject, "*");
+        });
+        infoBtn.addEventListener("click", function(e) {
+          let sendObject = {
+              "cmd": "info", 
+              id: myId
             };
             window.parent.postMessage(sendObject, "*");
         });
@@ -332,7 +364,7 @@
           if (i == 0) {
             getClosers[i].addEventListener("click", function() {
               event.stopPropagation();
-              window.parent.postMessage({cmd: 'close'}, "*");
+              window.parent.postMessage({cmd: 'close', id: myId}, "*");
             })
           }
           if (i == 1) {
@@ -345,15 +377,16 @@
               let sendObject = {
                 "cmd": "configure", 
                 "position": "br", 
-                "modal": "modal",
-                "bgColor": "rgba(0,0,255,0.6)",
+                "modal": "nonmodal",
+                "bgColor": "transparent",
                 "width": "fit-content",
-                "height": "fit-content"
+                "height": "fit-content", 
+                id: myId
               };
               window.parent.postMessage(sendObject, "*");
               
               //adding 1 pixel is hack for Firefox issue
-              let sendObject2 = {cmd: "configure", height:(getWrapper.offsetHeight + 1) +"px", width: (getWrapper.offsetWidth + 1) + "px"};
+              let sendObject2 = {cmd: "configure", id: myId, height:(getWrapper.offsetHeight + 1) +"px", width: (getWrapper.offsetWidth + 1) + "px"};
               window.parent.postMessage(sendObject2, "*");
             })
           }
@@ -405,30 +438,26 @@
         }
         //listen for component host messages/commands
         window.addEventListener("message", (event) => {
-          if (event.data.command) {
-            switch(event.data.command) {
+          if (event.data.action) {
+            switch(event.data.action) {
               case "spin":
-                const icon = document.getElementById("icon");
+              init();  
+              const icon = document.getElementById("icon");
                 icon.classList.remove("spin");
                 const myParent = icon.closest("div");
                 const inHTML = myParent.innerHTML;
                 myParent.innerHTML = inHTML;
                 const icon2 = document.getElementById("icon");
                 icon2.classList.add("spin");
-                //const newIcon = icon.cloneNode();
-                //newIcon.innerHTML = icon.innerHTML;
-                //const myParent = icon.closest("div");
-                //myParent.removeChild(icon);
-                //myParent.appendChild(newIcon);
-                //newIcon.classList.add("spin");
-                break;
-              case "unspin":
-                //icon.classList.remove("spin");
                 break;
             }
           }
-          console.log("Received message");
-          console.log(event.data);
+          if (event.data.cmd) {
+            if (event.data.cmd == "info") {
+              console.log("INFO RECEIVED");
+              console.log(event.data);
+            }
+          }
         });
       }
     </script>
