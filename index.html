@@ -191,6 +191,7 @@
       let bgcolor = "#f5d81b";
       let heading = "Rate Me";
       let subhead = "Why did you give this rating?";
+      let mode = "1";
       let myId = "";
       let chosenIcons = [];
         const heartSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="iconcolor">
@@ -230,6 +231,7 @@
         let getBgcolor = searchParams.get("data-background");
         let getHeading = searchParams.get("data-heading");
         let getSubhead = searchParams.get("data-subhead");
+        let getMode = searchParams.get("data-mode");
         let getId = searchParams.get("id");
         if (getIcon && getIcon !== "null") {
           icon = getIcon;
@@ -251,6 +253,9 @@
         }
         if (getId && getId != "null") {
           myId = getId;
+        }
+        if (getMode && getMode != "null") {
+          mode = getMode;
         }
         let iconHTML = "";
         switch (icon) {
@@ -303,6 +308,8 @@
           const mDialog = document.getElementById("dialog");
             mDialog.classList.remove("hide");
             getWrapper.classList.add("hide");
+            const icon = document.getElementById("icon");
+            icon.classList.remove("spin");
             let sendObject = {
               "cmd": "configure", 
               "position": "mm", 
@@ -374,15 +381,29 @@
               const getWrapper = document.getElementById("widget");
               getWrapper.classList.remove("hide");
               mDialog.classList.add("hide");
-              let sendObject = {
-                "cmd": "configure", 
-                "position": "br", 
-                "modal": "nonmodal",
-                "bgColor": "transparent",
-                "width": "fit-content",
-                "height": "fit-content", 
-                id: myId
-              };
+              let sendObject;
+              if (mode == "1") {
+                sendObject = {
+                  "cmd": "configure", 
+                  "position": "br", 
+                  "modal": "nonmodal",
+                  "bgColor": "transparent",
+                  "width": "fit-content",
+                  "height": "fit-content", 
+                  id: myId
+                };
+              }
+              if (mode == "2") {
+                sendObject = {
+                  "cmd": "configure", 
+                  "position": "tl", 
+                  "modal": "nonmodal",
+                  "bgColor": "#ff000022",
+                  "width": "fit-content",
+                  "height": "fit-content", 
+                  id: myId
+                };
+              }
               window.parent.postMessage(sendObject, "*");
               
               //adding 1 pixel is hack for Firefox issue
@@ -396,7 +417,11 @@
 
         if (getChooser) {
             for(x=1; x <= count; x++) {
-                let newDiv = document.createElement("DIV");
+              if (x == 1) {
+                getChooser.innerHTML = ""; 
+              }
+               
+              let newDiv = document.createElement("DIV");
                 newDiv.classList.add("selector");
                 newDiv.innerHTML = iconHTML;
                 const svgEl = newDiv.firstElementChild;

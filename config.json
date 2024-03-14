@@ -1,6 +1,6 @@
 {
-    "devKey": "M4ECMA65K38",
-    "licenseKey": "HWUNS0D5PRANTHA3N5WDHTRPU95NG9KZ8DZ5TS370VD4",
+    "devKey": "",
+    "licenseKey": "",
     "widgetHeight": "fit-content",
     "widgetWidth": "fit-content",
     "widgetMargin": "10px",
@@ -8,6 +8,7 @@
     "widgetPosition": "br",
     "widgetOverlay": "overlay",
     "widgetModal": "nonmodal",
-    "widgetUrl": "http://abc.financialmifo.com:5500/index.html",
-    "widgetAttributes": "id,data-icon,data-count,data-color,data-background,data-heading,data-subhead"
+    "widgetPreload":"yes",
+    "widgetUrl": "http://localhost:5500/index.html",
+    "widgetAttributes": "id,data-icon,data-count,data-color,data-background,data-heading,data-subhead,data-mode"
   }
