@@ -13,4 +13,4 @@ git clone https://github.com/mfoitzik/simplicity-embed-widget-example-vanilljs.g
 run Live Server on index.html
 ```
 
-Please note: The <simplicity-embed> component in mo0st examples references the setup file in this project being hosted at: http://localhost:5500/config.json, you may need to change the port numnber depending on what Live Server (or your dev server of choice) assigns as the port number.
+Please note: The <simplicity-embed> component in most examples references the setup file in this project being hosted at: http://localhost:5500/config.json, you may need to change the port numnber depending on what Live Server (or your dev server of choice) assigns as the port number.
